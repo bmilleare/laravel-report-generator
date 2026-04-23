@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace SamuelTerra22\ReportGenerator\Tests\Unit;
 
 use Mockery;
+use Mockery\MockInterface;
 use SamuelTerra22\ReportGenerator\ReportExporter;
 use SamuelTerra22\ReportGenerator\ReportMedia\CsvReport;
 use SamuelTerra22\ReportGenerator\ReportMedia\ExcelReport;
+use SamuelTerra22\ReportGenerator\ReportMedia\ParquetReport;
 use SamuelTerra22\ReportGenerator\ReportMedia\PdfReport;
 use SamuelTerra22\ReportGenerator\Tests\TestCase;
 
 class ReportExporterTest extends TestCase
 {
-    private function makeQueryWithResults(array $results = []): \Mockery\MockInterface
+    private function makeQueryWithResults(array $results = []): MockInterface
     {
         $resultObjects = array_map(fn ($row) => $this->makeResultObject($row), $results);
 
@@ -68,6 +70,16 @@ class ReportExporterTest extends TestCase
 
         $csv = $exporter->toCsv();
         $this->assertInstanceOf(CsvReport::class, $csv);
+    }
+
+    public function test_to_parquet_returns_parquet_report()
+    {
+        $exporter = new ReportExporter;
+        $query = $this->makeQueryWithResults();
+        $exporter->of('Test', [], $query, ['Name' => 'name']);
+
+        $parquet = $exporter->toParquet();
+        $this->assertInstanceOf(ParquetReport::class, $parquet);
     }
 
     public function test_builder_state_transferred_to_pdf()

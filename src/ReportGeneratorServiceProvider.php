@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace SamuelTerra22\ReportGenerator;
 
+use Maatwebsite\Excel\ExcelServiceProvider;
 use SamuelTerra22\ReportGenerator\ReportMedia\CsvReport;
 use SamuelTerra22\ReportGenerator\ReportMedia\ExcelReport;
+use SamuelTerra22\ReportGenerator\ReportMedia\ParquetReport;
 use SamuelTerra22\ReportGenerator\ReportMedia\PdfReport;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -25,7 +27,8 @@ class ReportGeneratorServiceProvider extends PackageServiceProvider
         $this->app->bind('pdf.report.generator', fn ($app) => new PdfReport);
         $this->app->bind('excel.report.generator', fn ($app) => new ExcelReport);
         $this->app->bind('csv.report.generator', fn ($app) => new CsvReport);
+        $this->app->bind('parquet.report.generator', fn ($app) => new ParquetReport);
         $this->app->bind('report.exporter', fn ($app) => new ReportExporter);
-        $this->app->register(\Maatwebsite\Excel\ExcelServiceProvider::class);
+        $this->app->register(ExcelServiceProvider::class);
     }
 }

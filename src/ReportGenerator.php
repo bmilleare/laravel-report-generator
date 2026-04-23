@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SamuelTerra22\ReportGenerator;
 
 use Config;
+use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Support\Str;
 
 abstract class ReportGenerator
@@ -72,6 +73,9 @@ abstract class ReportGenerator
     protected ?string $cacheKey = null;
 
     protected ?string $cacheStore = null;
+
+    // Feature 8: Parquet schema overrides (keys = snake_case column name)
+    protected array $parquetSchema = [];
 
     public function __construct()
     {
@@ -350,6 +354,15 @@ abstract class ReportGenerator
         return $this;
     }
 
+    // Feature 8: Parquet schema
+
+    public function schema(array $schema)
+    {
+        $this->parquetSchema = $schema;
+
+        return $this;
+    }
+
     protected function getCacheKey(): string
     {
         if ($this->cacheKey) {
@@ -366,7 +379,7 @@ abstract class ReportGenerator
         return $prefix.':'.md5($title.$columnKeys.$meta.$limit.$groupBy);
     }
 
-    protected function getCache(): \Illuminate\Contracts\Cache\Repository
+    protected function getCache(): Repository
     {
         $store = $this->cacheStore ?? Config::get('report-generator.cache_store');
 
@@ -405,6 +418,7 @@ abstract class ReportGenerator
             'cacheDuration' => $this->cacheDuration,
             'cacheKey' => $this->cacheKey,
             'cacheStore' => $this->cacheStore,
+            'parquetSchema' => $this->parquetSchema,
         ];
     }
 

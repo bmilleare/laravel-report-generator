@@ -25,8 +25,9 @@
     },
     "require-dev": {
         "barryvdh/laravel-dompdf": "^2.0||^3.0",
-        "laravel/pint": "^1.14",
+        "flow-php/parquet": "^0.28",
         "larastan/larastan": "^2.0||^3.0",
+        "laravel/pint": "^1.14",
         "league/csv": "^9.7",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^7.0||^8.0",
@@ -72,6 +73,7 @@
                 "PdfReport": "SamuelTerra22\\ReportGenerator\\Facades\\PdfReport",
                 "ExcelReport": "SamuelTerra22\\ReportGenerator\\Facades\\ExcelReport",
                 "CsvReport": "SamuelTerra22\\ReportGenerator\\Facades\\CsvReport",
+                "ParquetReport": "SamuelTerra22\\ReportGenerator\\Facades\\ParquetReport",
                 "ReportExporter": "SamuelTerra22\\ReportGenerator\\Facades\\ReportExporter"
             }
         }

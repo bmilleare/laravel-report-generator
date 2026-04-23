@@ -6,6 +6,7 @@ namespace SamuelTerra22\ReportGenerator;
 
 use SamuelTerra22\ReportGenerator\ReportMedia\CsvReport;
 use SamuelTerra22\ReportGenerator\ReportMedia\ExcelReport;
+use SamuelTerra22\ReportGenerator\ReportMedia\ParquetReport;
 use SamuelTerra22\ReportGenerator\ReportMedia\PdfReport;
 
 class ReportExporter
@@ -66,6 +67,8 @@ class ReportExporter
     protected ?string $cacheKey = null;
 
     protected ?string $cacheStore = null;
+
+    protected array $parquetSchema = [];
 
     public function of(string $title, array $meta, $query, array $columns): static
     {
@@ -297,6 +300,13 @@ class ReportExporter
         return $this;
     }
 
+    public function schema(array $schema): static
+    {
+        $this->parquetSchema = $schema;
+
+        return $this;
+    }
+
     public function toPdf(): PdfReport
     {
         $report = new PdfReport;
@@ -316,6 +326,14 @@ class ReportExporter
     public function toCsv(): CsvReport
     {
         $report = new CsvReport;
+        $this->applyState($report);
+
+        return $report;
+    }
+
+    public function toParquet(): ParquetReport
+    {
+        $report = new ParquetReport;
         $this->applyState($report);
 
         return $report;
@@ -355,6 +373,7 @@ class ReportExporter
             'cacheDuration' => $this->cacheDuration,
             'cacheKey' => $this->cacheKey,
             'cacheStore' => $this->cacheStore,
+            'parquetSchema' => $this->parquetSchema,
         ];
 
         $report->applyBuilderState($state);

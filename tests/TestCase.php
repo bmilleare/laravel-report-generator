@@ -5,6 +5,11 @@ declare(strict_types=1);
 namespace SamuelTerra22\ReportGenerator\Tests;
 
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
+use SamuelTerra22\ReportGenerator\Facades\CsvReport;
+use SamuelTerra22\ReportGenerator\Facades\ExcelReport;
+use SamuelTerra22\ReportGenerator\Facades\ParquetReport;
+use SamuelTerra22\ReportGenerator\Facades\PdfReport;
+use SamuelTerra22\ReportGenerator\Facades\ReportExporter;
 use SamuelTerra22\ReportGenerator\ReportGeneratorServiceProvider;
 
 abstract class TestCase extends OrchestraTestCase
@@ -19,10 +24,11 @@ abstract class TestCase extends OrchestraTestCase
     protected function getPackageAliases($app)
     {
         return [
-            'PdfReport' => \SamuelTerra22\ReportGenerator\Facades\PdfReport::class,
-            'ExcelReport' => \SamuelTerra22\ReportGenerator\Facades\ExcelReport::class,
-            'CsvReport' => \SamuelTerra22\ReportGenerator\Facades\CsvReport::class,
-            'ReportExporter' => \SamuelTerra22\ReportGenerator\Facades\ReportExporter::class,
+            'PdfReport' => PdfReport::class,
+            'ExcelReport' => ExcelReport::class,
+            'CsvReport' => CsvReport::class,
+            'ParquetReport' => ParquetReport::class,
+            'ReportExporter' => ReportExporter::class,
         ];
     }
 

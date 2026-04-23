@@ -1,7 +1,7 @@
 <p align="center">
   <h1 align="center">Laravel Report Generator</h1>
   <p align="center">
-    Generate PDF, Excel & CSV reports from Eloquent queries with a fluent API.
+    Generate PDF, Excel, CSV & Parquet reports from Eloquent queries with a fluent API.
     <br />
     Zero boilerplate. Full control. Works with Laravel 10, 11 & 12.
   </p>
@@ -22,8 +22,8 @@
 
 **Key features:**
 
-- **Three output formats** -- PDF, Excel (XLSX), and CSV from the same fluent interface
-- **Multi-format export** -- Define a report once, export to PDF, Excel, or CSV via `ReportExporter`
+- **Four output formats** -- PDF, Excel (XLSX), CSV, and Parquet from the same fluent interface
+- **Multi-format export** -- Define a report once, export to PDF, Excel, CSV, or Parquet via `ReportExporter`
 - **Column formatting** -- Transform displayed values with callbacks (`displayAs`) or built-in formatters (currency, date, percentage, etc.)
 - **Row grouping** -- Group rows by one or more columns with automatic subtotals
 - **Advanced aggregations** -- `sum`, `avg`, `min`, `max`, and `count` in total rows
@@ -48,6 +48,7 @@
   - [PDF Reports](#pdf-reports)
   - [Excel Reports](#excel-reports)
   - [CSV Reports](#csv-reports)
+  - [Parquet Reports](#parquet-reports)
 - [API Reference](#api-reference)
   - [Initializing a Report](#initializing-a-report)
   - [Column Formatting](#column-formatting)
@@ -108,6 +109,14 @@ composer require barryvdh/laravel-snappy
 ```bash
 composer require league/csv
 ```
+
+### Parquet support (optional)
+
+```bash
+composer require flow-php/parquet
+```
+
+> Parquet is a binary columnar format designed for analytics pipelines (Spark, DuckDB, Athena, Polars, etc.). Unlike the other formats, Parquet preserves native data types — numbers stay numeric, dates stay dates.
 
 ## Quick Start
 
@@ -262,6 +271,59 @@ CsvReport::of('User Export', ['Date' => now()->format('d M Y')], $query, [
 | Method | Description |
 |--------|-------------|
 | `download($filename)` | Outputs the CSV file for download |
+
+### Parquet Reports
+
+Parquet preserves native types — integers, floats, dates, booleans — which makes it ideal for downstream analytics tools (Spark, DuckDB, Polars, Athena). Column values go into Parquet **raw**; `editColumn()` display callbacks and `formatColumn()` formatters are intentionally bypassed so numeric/date fidelity is preserved. Use a closure column if you need transformed values.
+
+```php
+use SamuelTerra22\ReportGenerator\Facades\ParquetReport;
+
+$query = User::select(['name', 'email', 'balance', 'created_at']);
+
+ParquetReport::of('Users Export', [], $query, [
+        'Name'    => 'name',
+        'Email'   => 'email',
+        'Balance' => 'balance',
+        'Created' => 'created_at',
+    ])
+    ->schema([
+        'balance' => 'double',
+        'created' => 'datetime',
+    ])
+    ->download('users-export');
+```
+
+**Writing to a Laravel Storage disk** (S3, local, etc.):
+
+```php
+$path = ParquetReport::of('Users', [], $query, $columns)
+    ->store('s3', 'exports/users');  // writes exports/users.parquet to s3
+```
+
+**Getting raw bytes:**
+
+```php
+$bytes = ParquetReport::of('Users', [], $query, $columns)->make();
+```
+
+**Schema inference:** If you do not call `schema()`, types are inferred from the first row's PHP values (int → `int64`, float → `double`, bool → `boolean`, `DateTimeInterface` → `datetime`, everything else → `string`). For empty result sets, a schema is required.
+
+**Supported schema types:** `int32`, `int64`, `float`, `double`, `string`, `boolean`, `date`, `datetime`, `decimal`.
+
+**Column naming:** Parquet column names are the `snake_case` form of the display name (`'Full Name'` → `full_name`). Schema overrides use those snake-case keys.
+
+**What Parquet ignores:** styling, conditional formatting, headers/footers, `showMeta`, `groupBy`, `showTotal` — all silently dropped (binary columnar storage has no place for presentational data). `showNumColumn` adds a `no` int32 column when enabled.
+
+> Requires `flow-php/parquet`. The `.parquet` extension is added automatically.
+
+**Output methods for Parquet:**
+
+| Method | Description |
+|--------|-------------|
+| `make()` | Returns the raw Parquet binary string |
+| `download($filename)` | Emits the Parquet file with `application/vnd.apache.parquet` headers |
+| `store($disk, $path)` | Writes to a Laravel `Storage` disk; returns the final path |
 
 ---
 
@@ -507,7 +569,7 @@ Remove all header or footer content:
 
 ### Multi-Format Export
 
-Define a report once and export to multiple formats without duplicating configuration. Use `ReportExporter` to build the report, then call `toPdf()`, `toExcel()`, or `toCsv()`.
+Define a report once and export to multiple formats without duplicating configuration. Use `ReportExporter` to build the report, then call `toPdf()`, `toExcel()`, `toCsv()`, or `toParquet()`.
 
 ```php
 use SamuelTerra22\ReportGenerator\Facades\ReportExporter;
@@ -519,9 +581,10 @@ $exporter = ReportExporter::of('Sales Report', $meta, $query, $columns)
     ->groupBy('region');
 
 // Export to any format from the same definition:
-$pdf   = $exporter->toPdf()->make();
-$excel = $exporter->toExcel()->download('report');
-$csv   = $exporter->toCsv()->download('report');
+$pdf     = $exporter->toPdf()->make();
+$excel   = $exporter->toExcel()->download('report');
+$csv     = $exporter->toCsv()->download('report');
+$parquet = $exporter->toParquet()->store('s3', 'reports/sales');
 ```
 
 `ReportExporter` supports all the same fluent methods as the individual report classes (`editColumn`, `formatColumn`, `groupBy`, `showTotal`, `conditionalFormat`, `cacheFor`, etc.).
