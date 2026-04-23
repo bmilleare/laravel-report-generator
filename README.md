@@ -18,7 +18,7 @@
 
 ---
 
-**Laravel Report Generator** is a package that lets you build PDF, Excel (XLSX), and CSV reports directly from Eloquent queries or query builders using a clean, chainable API. Define columns, format values, group rows, add totals, customize styling -- all without writing HTML tables or spreadsheet logic by hand.
+**Laravel Report Generator** is a package that lets you build PDF, Excel (XLSX), CSV, and Parquet reports directly from Eloquent queries or query builders using a clean, chainable API. Define columns, format values, group rows, add totals, customize styling -- all without writing HTML tables or spreadsheet logic by hand.
 
 **Key features:**
 
